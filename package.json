@@ -10,6 +10,7 @@
     "ServiceNow"
   ],
   "author": "Colin O'Brien",
+  "email": "colin.obrien@servicenow.com",
   "license": "ISC",
   "dependencies": {
     "restler": "^3.3.0"

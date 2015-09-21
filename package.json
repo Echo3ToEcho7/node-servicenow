@@ -13,5 +13,9 @@
   "license": "ISC",
   "dependencies": {
     "restler": "^3.3.0"
+  },
+  "devDependencies": {
+    "chai": "^3.3.0",
+    "mocha": "^2.3.3"
   }
 }

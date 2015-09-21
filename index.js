@@ -1,4 +1,4 @@
-var rest = require('restify');
+var rest = require('restler');
 
 var ServiceNow = function ServiceNow(url, username, password, version) {
   this.url = url;
@@ -15,9 +15,13 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
     this.defaults.password = sn.password;
     this._sn_dirty = {};
     this._sn_fields = {};
-    this._sn_url = '/api/' + sn.version + '/' + table + '/' + sys_id;
+    this._sn_url = '/api/now/' + sn.version + '/table/' + table + '/' + sys_id;
   }, {
-    baseURL: sn.url
+    baseURL: sn.url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
   }, {
     set: function set(field, value) {
       this._sn_dirty[field] = value;
@@ -28,14 +32,16 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
       var that = this;
       var p = new Promise(function (resolve, reject) {
         that
-          .postJson(that._sn_url, that._sn_dirty)
+          .put(that._sn_url, {
+            data: JSON.stringify(that._sn_dirty),
+          })
           .on('complete', function (result, response) {
             if (result instanceof Error) {
               reject(result);
             } else {
-              Object.keys(that._sn_dirty).forEach(v => that._sn_fields[v] = that._sn_dirty;);
               that._sn_dirty = {};
-              resolve(result);
+              that._sn_fields = result.result;
+              resolve(result.result);
             }
           });
       });
@@ -44,10 +50,6 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
     },
 
     retrieve: function (fields) {
-      return this;
-    },
-
-    get: function () {
       var that = this;
       var p = new Promise(function (resolve, reject) {
         that
@@ -61,6 +63,10 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
             }
           });
       });
+    },
+
+    get: function (field) {
+      return this._sn_fields[field];
     }
   });
 

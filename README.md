@@ -23,7 +23,7 @@ var opts = {
 };
 
 record.retrieve().then(() =>
-  console.log('Short Description', irecord.get('short_description'));
+  console.log('Short Description', record.get('short_description'));
   record.set('short_decription', 'Some Udpate')
          .set('state', 3)
          .update(opts)

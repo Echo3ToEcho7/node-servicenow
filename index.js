@@ -50,19 +50,26 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
         var query = queries.join('&');
         var url = that._sn_url + (queries.length > 0 ? `?${query}` : '');
 
-        that
-          .put(url, {
-            data: JSON.stringify(that._sn_dirty),
-          })
-          .on('complete', function (result, response) {
-            if (result instanceof Error) {
-              reject(result);
-            } else {
-              that._sn_dirty = {};
-              that._sn_fields = result.result;
-              resolve(result.result);
-            }
-          });
+        //console.log('url', url);
+        that.put(url, {
+          data: JSON.stringify(that._sn_dirty),
+        }).on('complete', function (result, response) {
+          if (result instanceof Error) {
+            //console.log('Error', result);
+            reject(result);
+            return;
+          } else if (result.error) {
+            //console.log('Result error', result.error);
+            reject(result.error);
+            return;
+          } else {
+            //console.log('Success', result.result);
+            that._sn_dirty = {};
+            that._sn_fields = result.result;
+            resolve(result.result);
+            return;
+          }
+        });
       });
 
       return p;
@@ -71,16 +78,19 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
     retrieve: function (fields) {
       var that = this;
       var p = new Promise(function (resolve, reject) {
-        that
-          .json(that._sn_url)
-          .on('complete', function (result, response) {
-            if (result instanceof Error) {
-              reject(result);
-            } else {
-              that._sn_fields = result.result;
-              resolve(result.result);
-            }
-          });
+        that.json(that._sn_url).on('complete', function (result, response) {
+          if (result instanceof Error) {
+            reject(result);
+            return;
+          } else if (result.error) {
+            reject(result.error);
+            return;
+          } else {
+            that._sn_fields = result.result;
+            resolve(result.result);
+            return;
+          }
+        });
       });
     },
 

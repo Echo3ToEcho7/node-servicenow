@@ -11,14 +11,22 @@ Example
 ```javascript
 
 var ServiceNow = requrie('node-servicenow');
-var instance = new ServiceNow('https://myinstance.service-now.com', 'username', 'password');
-var irecord = instance.record('incident', '1234567890abcdef');
+var instance = new ServiceNow('https://myinstance.service-now.com', 'username', 'password', {
+  version: 'v1'
+});
+var record = instance.record('incident', '1234567890abcdef');
 
-irecord.retrieve().then(() =>
+var opts = {
+  params: {
+    sysparm_scope: 'global'
+  }
+};
+
+record.retrieve().then(() =>
   console.log('Short Description', irecord.get('short_description'));
-  irecord.set('short_decription', 'Some Udpate')
+  record.set('short_decription', 'Some Udpate')
          .set('state', 3)
-         .update()
+         .update(opts)
          .then((res) => console.log(res.short_decription));
 );
 ```

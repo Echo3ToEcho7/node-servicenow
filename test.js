@@ -19,8 +19,23 @@ describe('ServiceNow Service', function () {
       }
     };
 
-    incident.set('short_description', sd).update(opts).then(() => done()).catch(function (err) {
-      done(err);
-    });
+    incident.set('short_description', sd).update(opts)
+      .then(() => done())
+      .catch((err) => done(err));
+  });
+
+  it ('should return an error when a record doesn\'t exist', function (done) {
+    var incident = sn.record('incident', '12345');
+    var sd = "Updated " + (new Date());
+
+    var opts = {
+      params: {
+        sysparm_scope: 'global'
+      }
+    };
+
+    incident.set('short_description', sd).update(opts)
+      .then(() => done('Should give an error'))
+      .catch((err) => done());
   });
 });

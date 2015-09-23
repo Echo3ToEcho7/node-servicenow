@@ -1,10 +1,16 @@
 var rest = require('restler');
 
-var ServiceNow = function ServiceNow(url, username, password, version) {
+var ServiceNow = function ServiceNow(url, username, password, opts) {
   this.url = url;
   this.username = username;
   this.password = password;
-  this.version = version || 'v1';
+  this.opts = {};
+  if (typeof opts === 'string') {
+    this.version = opts;
+    this.opts.version = this.version;
+  } else {
+    this.opts = Object.assign(this.opts, opts);
+  }
 };
 
 ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
@@ -13,9 +19,15 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
   var tbl = rest.service(function () {
     this.defaults.username = sn.username;
     this.defaults.password = sn.password;
+
     this._sn_dirty = {};
     this._sn_fields = {};
-    this._sn_url = '/api/now/' + sn.version + '/table/' + table + '/' + sys_id;
+
+    this._sn_url = '/api/now';
+    if (sn.opts.version) {
+      this._sn_url += '/' + sn.opts.version
+    }
+    this._sn_url += '/table/' + table + '/' + sys_id;
   }, {
     baseURL: sn.url,
     headers: {
@@ -28,11 +40,18 @@ ServiceNow.prototype.record = function ServiceNow_record(table, sys_id) {
       return this;
     },
 
-    update: function () {
+    update: function (opts) {
       var that = this;
+      var o = Object.assign({}, opts);
+
       var p = new Promise(function (resolve, reject) {
+        var params = Object.assign({}, sn.opts.params, o.params);
+        var queries = Object.keys(params).map((k) => `${k}=${params[k]}`);
+        var query = queries.join('&');
+        var url = that._sn_url + (queries.length > 0 ? `?${query}` : '');
+
         that
-          .put(that._sn_url, {
+          .put(url, {
             data: JSON.stringify(that._sn_dirty),
           })
           .on('complete', function (result, response) {
